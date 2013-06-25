@@ -190,10 +190,11 @@ Sets the specified session timeout value.
 	#
 
 	@staticmethod
-	def load(uuid = None):
+	def load(uuid = None, session_create = True):
 	#
 		"""
-Loads the given (or initializes a fresh) uuID.
+Loads the given (or externally identified) uuID session. Creates a new one
+if required and requested.
 
 :param uuid: Unique user identification
 
@@ -201,7 +202,7 @@ Loads the given (or initializes a fresh) uuID.
 		"""
 
 		if (uuid == None): uuid = Uuids.get_uuid()
-		database = Connection.get_instance(False)
+		database = Connection.get_instance()
 
 		if ((not Settings.get("pas_session_uuids_auto_maintenance", False)) and randrange(0, 3) < 1):
 		#
@@ -216,12 +217,16 @@ Loads the given (or initializes a fresh) uuID.
 			var_return = None
 		#
 
-		if (var_return == None): var_return = Uuids()
+		if (var_return == None and session_create): var_return = Uuids()
 
-		adapter = Uuids.get_adapter()
-		if (adapter != None): adapter(var_return).load()
+		if (var_return != None):
+		#
+			adapter = Uuids.get_adapter()
+			if (adapter != None): adapter(var_return).load()
 
-		Uuids.set_uuid(var_return.uuid)
+			Uuids.set_uuid(var_return.uuid)
+		#
+
 		return var_return
 	#
 #
