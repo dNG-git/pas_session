@@ -23,14 +23,12 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 ----------------------------------------------------------------------------
 NOTE_END //n"""
 
-from binascii import hexlify
-from os import urandom
 from random import randrange
 from sqlalchemy import BIGINT, Column, TEXT, VARCHAR
 from time import time
+from uuid import uuid4 as uuid
 
 from dNG.data.json_parser import JsonParser
-from dNG.pas.data.binary import Binary
 from dNG.pas.data.settings import Settings
 from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
@@ -56,19 +54,19 @@ session implementation.
 SQLAlchemy table name
 	"""
 
-	uuid = Column(VARCHAR(32), server_default = "", primary_key = True, nullable = False)
+	db_uuid = Column("uuid", VARCHAR(32), server_default = "", primary_key = True, nullable = False)
 	"""
 uuids.uuid
 	"""
-	session_timeout = Column(BIGINT, index = True, nullable = False)
+	db_session_timeout = Column("session_timeout", BIGINT, index = True, nullable = False)
 	"""
 uuids.session_timeout
 	"""
-	ip = Column(VARCHAR(100), server_default = "", nullable = False)
+	db_ip = Column("ip", VARCHAR(100), server_default = "", nullable = False)
 	"""
 uuids.ip
 	"""
-	data = Column(TEXT, nullable = False)
+	db_data = Column("data", TEXT, nullable = False)
 	"""
 uuids.data
 	"""
@@ -93,9 +91,9 @@ Max age of the session
 Validity of the session
 		"""
 
-		if (self.data != None and self.data != ""): self.cache = JsonParser().json2data(self.data)
-		if (self.session_timeout == None): self.session_timeout = int(time() + self.session_time)
-		if (self.uuid == None): self.uuid = Binary.str(hexlify(urandom(16)))
+		if (self.db_uuid == None): self.db_uuid = uuid().hex
+		if (self.db_session_timeout == None): self.db_session_timeout = int(time() + self.session_time)
+		if (self.db_data != None and self.db_data != ""): self.cache = JsonParser().json2data(self.db_data)
 	#
 
 	def is_active(self):
@@ -124,30 +122,20 @@ Returns true if the uuID session is still valid.
 
 		if (self.validity == None):
 		#
-			var_return = (self.session_timeout > time())
+			_return = (self.db_session_timeout > time())
 
-			if (var_return):
+			if (_return):
 			#
 				adapter = Uuids.get_adapter()
-				if (adapter != None): var_return = adapter(self).is_valid()
+				if (adapter != None): _return = adapter(self).is_valid()
 			#
 
-			self.validity = var_return
+			self.validity = _return
 		#
-		else: var_return = self.validity
+		else: _return = self.validity
 
-		return var_return
+		return _return
 	#
-
-	"""
-	@hybrid_property
-	def value(self):
-		return self._value
-
-	@value.setter
-	def value(self, value):
-		self._value = value
-	"""
 
 	def save(self):
 	#
@@ -158,22 +146,22 @@ Saves changes of the uuIDs instance.
 :since:  v0.1.00
 		"""
 
-		var_return = False
+		_return = False
 
 		if (self.is_valid()):
 		#
-			var_return = Abstract.save(self)
+			_return = Abstract.save(self)
 
-			if (var_return):
+			if (_return):
 			#
-				self.data = ("" if (self.cache == None) else JsonParser().data2json(self.cache))
-				self.session_timeout = int(time() + self.session_time)
+				self.db_session_timeout = int(time() + self.session_time)
+				self.db_data = ("" if (self.cache == None) else JsonParser().data2json(self.cache))
 
-				if (not self.is_known()): self.insert()
+				Instance.save(self)
 			#
 		#
 
-		return var_return
+		return _return
 	#
 
 	def set_session_time(self, seconds = None):
@@ -204,30 +192,29 @@ if required and requested.
 		if (uuid == None): uuid = Uuids.get_uuid()
 		database = Connection.get_instance()
 
-		if ((not Settings.get("pas_session_uuids_auto_maintenance", False)) and randrange(0, 3) < 1):
+		if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
 		#
-			if (database.query(Uuids).filter(Uuids.session_timeout <= int(time())).delete() > 0): database.optimize_random(Uuids)
-		#
-
-		var_return = (None if (uuid == None) else database.query(Uuids).filter(Uuids.uuid == uuid).first())
-
-		if (var_return != None and (not var_return.is_valid())):
-		#
-			database.delete(var_return)
-			var_return = None
+			if (database.query(Uuids).filter(Uuids.db_session_timeout <= int(time())).delete() > 0): database.optimize_random(Uuids)
 		#
 
-		if (var_return == None and session_create): var_return = Uuids()
+		_return = (None if (uuid == None) else database.query(Uuids).filter(Uuids.db_uuid == uuid).first())
 
-		if (var_return != None):
+		if (_return != None):
 		#
 			adapter = Uuids.get_adapter()
-			if (adapter != None): adapter(var_return).load()
+			if (adapter != None): adapter(_return).load()
 
-			Uuids.set_uuid(var_return.uuid)
+			if (not _return.is_valid()):
+			#
+				database.delete(_return)
+				_return = None
+			#
 		#
 
-		return var_return
+		if (_return == None and session_create): _return = Uuids()
+		if (_return != None): Uuids.set_uuid(_return.db_uuid)
+
+		return _return
 	#
 #
 

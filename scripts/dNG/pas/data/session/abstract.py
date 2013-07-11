@@ -27,6 +27,9 @@ from threading import local
 
 from dNG.pas.controller.abstract_request import AbstractRequest
 from dNG.pas.controller.abstract_response import AbstractResponse
+from dNG.pas.data.logging.log_line import LogLine
+from dNG.pas.data.user.profile import Profile
+from dNG.pas.database.connection import Connection
 from .abstract_adapter import AbstractAdapter
 
 class Abstract(object):
@@ -69,6 +72,10 @@ Constructor __init__(Abstract)
 		"""
 Session data cache
 		"""
+		self.profile = None
+		"""
+Session user profile
+		"""
 	#
 
 	def __getattr__(self, name):
@@ -103,6 +110,44 @@ Returns the value with the specified key or all session values.
 		"""
 
 		return (self.cache if (key == None or self.cache == None) else self.cache.get(key, default))
+	#
+
+	def get_user_profile(self):
+	#
+		"""
+Returns the value with the specified key or all session values.
+
+:param key: Session key or NULL to receive all session values.
+:param default: Default value if not set
+
+:return: (mixed) Value
+:since:  v0.1.00
+		"""
+
+		_return = None
+
+		try:
+		#
+			if (self.profile != None): _return = self.profile
+			elif (self.cache != None and "session.user_id" in self.cache and self.cache['session.user_id'] != None):
+			#
+				user_profile = Profile.db_get_id(self.cache['session.user_id'])
+				user_profile_data = (None if (user_profile == None) else user_profile.db_get("banned", "deleted", "locked"))
+
+				if (user_profile_data != None and user_profile_data['banned'] + user_profile_data['deleted'] + user_profile_data['locked'] == 0):
+				#
+					self.profile = user_profile
+					_return = self.profile
+				#
+			#
+		#
+		except Exception as handled_exception:
+		#
+			LogLine.error(handled_exception)
+			_return = None
+		#
+
+		return _return
 	#
 
 	def is_active(self):
@@ -169,6 +214,7 @@ Sets the value for the specified key.
 		"""
 
 		if (self.cache == None): self.cache = { }
+		if (key == "session.user_id"): self.profile = None
 		self.cache[key] = value
 	#
 
@@ -191,21 +237,20 @@ Sets the specified session timeout value.
 		"""
 Return the session adapter for protocol specific methods.
 
-:access: protected
 :return: (object) Session protocol adapter; None if not set
 :since:  v0.1.00
 		"""
 
-		var_return = None
+		_return = None
 
 		if (not Abstract.thread_safe_mode):
 		#
 			store = AbstractResponse.get_instance_store()
-			if (store != None and "dNG.pas.data.session.adapter" in store): var_return = store['dNG.pas.data.session.adapter']
+			if (store != None and "dNG.pas.data.session.adapter" in store): _return = store['dNG.pas.data.session.adapter']
 		#
-		elif (hasattr(Abstract.local, "adapter")): var_return = Abstract.local.adapter
+		elif (hasattr(Abstract.local, "adapter")): _return = Abstract.local.adapter
 
-		return var_return
+		return _return
 	#
 
 	@staticmethod

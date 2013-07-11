@@ -2,7 +2,7 @@
 ##j## BOF
 
 """
-dNG.pas.plugins.db.session
+dNG.pas.plugins.database.session
 """
 """n// NOTE
 ----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ Unregister plugin hooks.
 :since: v0.1.00
 	"""
 
-	Hooks.unregister("dNG.pas.db.load_all", plugin_db_load_all)
+	Hooks.unregister("dNG.pas.database.load_all", plugin_db_load_all)
 #
 
 def plugin_registration ():
@@ -59,7 +59,7 @@ Register plugin hooks.
 :since: v0.1.00
 	"""
 
-	Hooks.register("dNG.pas.db.load_all", plugin_db_load_all)
+	Hooks.register("dNG.pas.database.load_all", plugin_db_load_all)
 #
 
 ##j## EOF
