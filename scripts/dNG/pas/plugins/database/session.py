@@ -37,7 +37,7 @@ Load and register all SQLAlchemy objects to generate database tables.
 :since: v0.1.00
 	"""
 
-	NamedLoader.get_instance("dNG.pas.data.session.Uuids")
+	NamedLoader.get_instance("dNG.pas.database.instances.Uuids")
 #
 
 def plugin_deregistration():

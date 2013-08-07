@@ -29,7 +29,6 @@ from dNG.pas.controller.abstract_request import AbstractRequest
 from dNG.pas.controller.abstract_response import AbstractResponse
 from dNG.pas.data.logging.log_line import LogLine
 from dNG.pas.data.user.profile import Profile
-from dNG.pas.database.connection import Connection
 from .abstract_adapter import AbstractAdapter
 
 class Abstract(object):
@@ -131,8 +130,8 @@ Returns the value with the specified key or all session values.
 			if (self.profile != None): _return = self.profile
 			elif (self.cache != None and "session.user_id" in self.cache and self.cache['session.user_id'] != None):
 			#
-				user_profile = Profile.db_get_id(self.cache['session.user_id'])
-				user_profile_data = (None if (user_profile == None) else user_profile.db_get("banned", "deleted", "locked"))
+				user_profile = Profile.load_id(self.cache['session.user_id'])
+				user_profile_data = (None if (user_profile == None) else user_profile.data_get("banned", "deleted", "locked"))
 
 				if (user_profile_data != None and user_profile_data['banned'] + user_profile_data['deleted'] + user_profile_data['locked'] == 0):
 				#

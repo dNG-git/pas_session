@@ -24,14 +24,13 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 NOTE_END //n"""
 
 from random import randrange
-from sqlalchemy import BIGINT, Column, TEXT, VARCHAR
 from time import time
-from uuid import uuid4 as uuid
 
 from dNG.data.json_parser import JsonParser
 from dNG.pas.data.settings import Settings
 from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
+from dNG.pas.database.instances.uuids import Uuids as UuidsInstance
 from .abstract import Abstract
 
 class Uuids(Abstract, Instance):
@@ -49,29 +48,7 @@ session implementation.
              Mozilla Public License, v. 2.0
 	"""
 
-	__tablename__ = "{0}_uuids".format(Instance.get_table_prefix())
-	"""
-SQLAlchemy table name
-	"""
-
-	db_uuid = Column("uuid", VARCHAR(32), server_default = "", primary_key = True, nullable = False)
-	"""
-uuids.uuid
-	"""
-	db_session_timeout = Column("session_timeout", BIGINT, index = True, nullable = False)
-	"""
-uuids.session_timeout
-	"""
-	db_ip = Column("ip", VARCHAR(100), server_default = "", nullable = False)
-	"""
-uuids.ip
-	"""
-	db_data = Column("data", TEXT, nullable = False)
-	"""
-uuids.data
-	"""
-
-	def __init__(self):
+	def __init__(self, db_instance = None):
 	#
 		"""
 Constructor __init__(Uuids)
@@ -80,7 +57,9 @@ Constructor __init__(Uuids)
 		"""
 
 		Abstract.__init__(self)
-		Instance.__init__(self)
+
+		if (db_instance == None): db_instance = UuidsInstance()
+		Instance.__init__(self, db_instance)
 
 		self.session_time = int(Settings.get("pas_session_uuids_session_time", 900))
 		"""
@@ -91,9 +70,8 @@ Max age of the session
 Validity of the session
 		"""
 
-		if (self.db_uuid == None): self.db_uuid = uuid().hex
-		if (self.db_session_timeout == None): self.db_session_timeout = int(time() + self.session_time)
-		if (self.db_data != None and self.db_data != ""): self.cache = JsonParser().json2data(self.db_data)
+		if (self._db_instance.data != None and self._db_instance.data != ""): self.cache = JsonParser().json2data(self._db_instance.data)
+		if (self._db_instance.session_timeout == None): self._db_instance.session_timeout = int(time() + self.session_time)
 	#
 
 	def is_active(self):
@@ -122,7 +100,8 @@ Returns true if the uuID session is still valid.
 
 		if (self.validity == None):
 		#
-			_return = (self.db_session_timeout > time())
+			if (self._db_instance == None): raise RuntimeError("Database instance is not correctly initialized", 22)
+			_return = (self._db_instance.session_timeout > time())
 
 			if (_return):
 			#
@@ -150,12 +129,13 @@ Saves changes of the uuIDs instance.
 
 		if (self.is_valid()):
 		#
+			if (self._db_instance == None): raise RuntimeError("Database instance is not correctly initialized", 22)
 			_return = Abstract.save(self)
 
 			if (_return):
 			#
-				self.db_session_timeout = int(time() + self.session_time)
-				self.db_data = ("" if (self.cache == None) else JsonParser().data2json(self.cache))
+				self._db_instance.session_timeout = int(time() + self.session_time)
+				self._db_instance.data = ("" if (self.cache == None) else JsonParser().data2json(self.cache))
 
 				Instance.save(self)
 			#
@@ -194,25 +174,33 @@ if required and requested.
 
 		if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
 		#
-			if (database.query(Uuids).filter(Uuids.db_session_timeout <= int(time())).delete() > 0): database.optimize_random(Uuids)
+			if (database.query(UuidsInstance).filter(UuidsInstance.session_timeout <= int(time())).delete() > 0): database.optimize_random(UuidsInstance)
 		#
 
-		_return = (None if (uuid == None) else database.query(Uuids).filter(Uuids.db_uuid == uuid).first())
+		_return = None
+		db_instance = (None if (uuid == None) else database.query(UuidsInstance).filter(UuidsInstance.uuid == uuid).first())
 
-		if (_return != None):
+		if (db_instance != None):
 		#
+			_return = Uuids(db_instance)
+
 			adapter = Uuids.get_adapter()
 			if (adapter != None): adapter(_return).load()
 
 			if (not _return.is_valid()):
 			#
-				database.delete(_return)
+				database.delete(db_instance)
 				_return = None
 			#
 		#
 
 		if (_return == None and session_create): _return = Uuids()
-		if (_return != None): Uuids.set_uuid(_return.db_uuid)
+
+		if (_return != None):
+		#
+			uuids_data = _return.data_get("uuid")
+			Uuids.set_uuid(uuids_data['uuid'])
+		#
 
 		return _return
 	#
