@@ -27,10 +27,12 @@ from random import randrange
 from time import time
 
 from dNG.data.json_parser import JsonParser
+from dNG.pas.data.binary import Binary
 from dNG.pas.data.settings import Settings
+from dNG.pas.data.traced_exception import TracedException
 from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
-from dNG.pas.database.instances.uuids import Uuids as UuidsInstance
+from dNG.pas.database.instances.uuids import Uuids as _DbUuids
 from .abstract import Abstract
 
 class Uuids(Abstract, Instance):
@@ -58,20 +60,43 @@ Constructor __init__(Uuids)
 
 		Abstract.__init__(self)
 
-		if (db_instance == None): db_instance = UuidsInstance()
+		if (db_instance == None): db_instance = _DbUuids()
 		Instance.__init__(self, db_instance)
 
 		self.session_time = int(Settings.get("pas_session_uuids_session_time", 900))
 		"""
 Max age of the session
 		"""
+		self.uuid = db_instance.uuid
+		"""
+Database uuID used for reloading
+		"""
 		self.validity = None
 		"""
 Validity of the session
 		"""
 
-		if (self._db_instance.data != None and self._db_instance.data != ""): self.cache = JsonParser().json2data(self._db_instance.data)
-		if (self._db_instance.session_timeout == None): self._db_instance.session_timeout = int(time() + self.session_time)
+		if (self.local.db_instance.data != None and self.local.db_instance.data != ""): self.cache = JsonParser().json2data(self.local.db_instance.data)
+		if (self.local.db_instance.session_timeout == None): self.local.db_instance.session_timeout = int(time() + self.session_time)
+	#
+
+	def delete(self):
+	#
+		"""
+Deletes this entry from the database.
+
+:since: v0.1.00
+		"""
+
+		_return = False
+
+		with self:
+		#
+			self._database.delete(self.local.db_instance)
+			_return = True
+		#
+
+		return _return
 	#
 
 	def is_active(self):
@@ -100,20 +125,41 @@ Returns true if the uuID session is still valid.
 
 		if (self.validity == None):
 		#
-			if (self._db_instance == None): raise RuntimeError("Database instance is not correctly initialized", 22)
-			_return = (self._db_instance.session_timeout > time())
-
-			if (_return):
+			with self:
 			#
-				adapter = Uuids.get_adapter()
-				if (adapter != None): _return = adapter(self).is_valid()
-			#
+				_return = (self.local.db_instance.session_timeout > time())
 
-			self.validity = _return
+				if (_return):
+				#
+					adapter = Uuids.get_adapter()
+					if (adapter != None): _return = adapter(self).is_valid()
+				#
+
+				self.validity = _return
+			#
 		#
 		else: _return = self.validity
 
 		return _return
+	#
+
+	def _reload(self):
+	#
+		"""
+Implementation of the reloading SQLalchemy database instance logic.
+
+:since: v0.1.00
+		"""
+
+		with self.lock:
+		#
+			if (self.local.db_instance == None):
+			#
+				if (self.uuid == None): raise TracedException("Database instance is not reloadable.")
+				self.local.db_instance = self._database.query(Uuids).filter(Uuids.uuid == self.uuid).one()
+			#
+			else: Instance._reload(self)
+		#
 	#
 
 	def save(self):
@@ -129,15 +175,17 @@ Saves changes of the uuIDs instance.
 
 		if (self.is_valid()):
 		#
-			if (self._db_instance == None): raise RuntimeError("Database instance is not correctly initialized", 22)
-			_return = Abstract.save(self)
-
-			if (_return):
+			with self:
 			#
-				self._db_instance.session_timeout = int(time() + self.session_time)
-				self._db_instance.data = ("" if (self.cache == None) else JsonParser().data2json(self.cache))
+				_return = Abstract.save(self)
 
-				Instance.save(self)
+				if (_return):
+				#
+					self.local.db_instance.session_timeout = int(time() + self.session_time)
+					self.local.db_instance.data = ("" if (self.cache == None) else Binary.utf8(JsonParser().data2json(self.cache)))
+
+					Instance.save(self)
+				#
 			#
 		#
 
@@ -165,41 +213,44 @@ Loads the given (or externally identified) uuID session. Creates a new one
 if required and requested.
 
 :param uuid: Unique user identification
+:param session_create: Create a new session if no one is loaded
 
 :since: v0.1.00
 		"""
 
-		if (uuid == None): uuid = Uuids.get_uuid()
-		database = Connection.get_instance()
-
-		if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
+		with Connection.get_instance() as database:
 		#
-			if (database.query(UuidsInstance).filter(UuidsInstance.session_timeout <= int(time())).delete() > 0): database.optimize_random(UuidsInstance)
-		#
+			if (uuid == None): uuid = Uuids.get_uuid()
 
-		_return = None
-		db_instance = (None if (uuid == None) else database.query(UuidsInstance).filter(UuidsInstance.uuid == uuid).first())
-
-		if (db_instance != None):
-		#
-			_return = Uuids(db_instance)
-
-			adapter = Uuids.get_adapter()
-			if (adapter != None): adapter(_return).load()
-
-			if (not _return.is_valid()):
+			if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
 			#
-				database.delete(db_instance)
-				_return = None
+				if (database.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0): database.optimize_random(_DbUuids)
 			#
-		#
 
-		if (_return == None and session_create): _return = Uuids()
+			_return = None
+			db_instance = (None if (uuid == None) else database.query(_DbUuids).filter(_DbUuids.uuid == uuid).first())
 
-		if (_return != None):
-		#
-			uuids_data = _return.data_get("uuid")
-			Uuids.set_uuid(uuids_data['uuid'])
+			if (db_instance != None):
+			#
+				_return = Uuids(db_instance)
+
+				adapter = Uuids.get_adapter()
+				if (adapter != None): adapter(_return).load()
+
+				if (not _return.is_valid()):
+				#
+					_return.delete()
+					_return = None
+				#
+			#
+
+			if (_return == None and session_create): _return = Uuids()
+
+			if (_return != None):
+			#
+				uuids_data = _return.data_get("uuid")
+				Uuids.set_uuid(uuids_data['uuid'])
+			#
 		#
 
 		return _return

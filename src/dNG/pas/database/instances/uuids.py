@@ -31,8 +31,8 @@ from .abstract import Abstract
 class Uuids(Abstract):
 #
 	"""
-The unique user Identification Service is the database based default
-session implementation.
+The unique user Identification Service is the SQLalchemy based database
+instance for a session.
 
 :author:     direct Netware Group
 :copyright:  (C) direct Netware Group - All rights reserved
@@ -46,6 +46,10 @@ session implementation.
 	__tablename__ = "{0}_uuids".format(Abstract.get_table_prefix())
 	"""
 SQLAlchemy table name
+	"""
+	db_instance_class = "dNG.pas.data.session.Uuids"
+	"""
+Encapsulating SQLAlchemy database instance class name
 	"""
 
 	uuid = Column(VARCHAR(32), server_default = "", primary_key = True, nullable = False)

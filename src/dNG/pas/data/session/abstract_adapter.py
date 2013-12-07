@@ -57,7 +57,7 @@ Session instance
 	def is_persistent(self):
 	#
 		"""
-Returns true if the uuID session set persistently at the client.
+Returns true if the uuID session is set persistently at the client.
 
 :return: (bool) True if set
 :since:  v0.1.00
