@@ -23,13 +23,13 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 ----------------------------------------------------------------------------
 NOTE_END //n"""
 
-from threading import local
-
 from dNG.pas.controller.abstract_request import AbstractRequest
 from dNG.pas.controller.abstract_response import AbstractResponse
-from dNG.pas.data.traced_exception import TracedException
 from dNG.pas.data.logging.log_line import LogLine
 from dNG.pas.data.user.profile import Profile
+from dNG.pas.runtime.not_implemented_exception import NotImplementedException
+from dNG.pas.runtime.type_exception import TypeException
+from dNG.pas.runtime.value_exception import ValueException
 from .abstract_adapter import AbstractAdapter
 
 class Abstract(object):
@@ -45,15 +45,6 @@ multiple responses.
 :since:      v0.1.00
 :license:    http://www.direct-netware.de/redirect.py?licenses;mpl2
              Mozilla Public License, v. 2.0
-	"""
-
-	local = local()
-	"""
-Local data handle
-	"""
-	thread_safe_mode = False
-	"""
-True if each running thread represents requests from exactly one client
 	"""
 
 	def __init__(self):
@@ -89,7 +80,7 @@ class tree for self).
 
 		adapter = Abstract.get_adapter()
 
-		if (adapter == None or (not hasattr(adapter, name))): raise AttributeError("Session adapter does not implement '{0}'".format(name))
+		if (adapter == None or (not hasattr(adapter, name))): raise TypeException("Session adapter does not implement '{0}'".format(name))
 		return getattr(adapter(self), name)
 	#
 
@@ -108,6 +99,18 @@ Returns the value with the specified key or all session values.
 		return (self.cache if (key == None or self.cache == None) else self.cache.get(key, default))
 	#
 
+	def get_user_id(self):
+	#
+		"""
+Returns the user ID set for the session.
+
+:return: (str) User ID; None if not set
+:since:  v0.1.00
+		"""
+
+		return (None if (self.cache == None or "session.user_id" not in self.cache) else self.cache['session.user_id'])
+	#
+
 	def get_user_profile(self):
 	#
 		"""
@@ -122,20 +125,22 @@ Returns the user profile set for the session.
 		try:
 		#
 			if (self.user_profile != None): _return = self.user_profile
-			elif (self.cache != None and "session.user_id" in self.cache and self.cache['session.user_id'] != None):
+			else:
 			#
+				user_id = self.get_user_id()
+				user_profile = None
+
 				try:
 				#
-					user_profile = Profile.load_id(self.cache['session.user_id'])
-					user_profile_data = user_profile.data_get("banned", "deleted", "locked")
-
-					if (user_profile_data != None and user_profile_data['banned'] + user_profile_data['deleted'] + user_profile_data['locked'] == 0):
-					#
-						self.user_profile = user_profile
-						_return = self.user_profile
-					#
+					if (user_id != None): user_profile = Profile.load_id(user_id)
 				#
-				except TracedException: pass
+				except ValueException: pass
+
+				if (user_profile != None and user_profile.is_valid()):
+				#
+					self.user_profile = user_profile
+					_return = self.user_profile
+				#
 			#
 		#
 		except Exception as handled_exception:
@@ -238,16 +243,8 @@ Return the session adapter for protocol specific methods.
 :since:  v0.1.00
 		"""
 
-		_return = None
-
-		if (not Abstract.thread_safe_mode):
-		#
-			store = AbstractResponse.get_instance_store()
-			if (store != None and "dNG.pas.data.session.Adapter" in store): _return = store['dNG.pas.data.session.Adapter']
-		#
-		elif (hasattr(Abstract.local, "adapter")): _return = Abstract.local.adapter
-
-		return _return
+		store = AbstractResponse.get_instance_store()
+		return (store['dNG.pas.data.session.Adapter'] if (store != None and "dNG.pas.data.session.Adapter" in store) else None)
 	#
 
 	@staticmethod
@@ -274,12 +271,8 @@ Returns the uuID set or for the corresponding request (if set).
 :since:  v0.1.00
 		"""
 
-		if (Abstract.thread_safe_mode): uuid = (Abstract.local.uuid if (hasattr(Abstract.local, "uuid")) else None)
-		else:
-		#
-			store = AbstractResponse.get_instance_store()
-			if (store != None): uuid = (store['dNG.pas.data.session.uuid'] if ("dNG.pas.data.session.uuid" in store) else None)
-		#
+		store = AbstractResponse.get_instance_store()
+		if (store != None): uuid = (store['dNG.pas.data.session.uuid'] if ("dNG.pas.data.session.uuid" in store) else None)
 
 		if (uuid == None):
 		#
@@ -302,7 +295,7 @@ Loads the given (or initializes a fresh) uuID.
 :since: v0.1.00
 		"""
 
-		raise TracedException("Not implemented")
+		raise NotImplementedException()
 	#
 
 	@staticmethod
@@ -318,28 +311,9 @@ Sets the protocol specific adapter to be called.
 
 		if (issubclass(adapter, AbstractAdapter)):
 		#
-			if (Abstract.thread_safe_mode): Abstract.local.adapter = adapter
-			else:
-			#
-				store = AbstractResponse.get_instance_store()
-				if (store != None): store['dNG.pas.data.session.Adapter'] = adapter
-			#
+			store = AbstractResponse.get_instance_store()
+			if (store != None): store['dNG.pas.data.session.Adapter'] = adapter
 		#
-	#
-
-	@staticmethod
-	def set_thread_safety(thread_safe):
-	#
-		"""
-Defines the thread safety state.
-
-:param thread_safe: True if each running thread represents requests from
-                    exactly one client
-
-:since: v0.1.00
-		"""
-
-		Abstract.thread_safe_mode = thread_safe
 	#
 
 	@staticmethod
@@ -353,12 +327,8 @@ Defines the uuID for the calling thread.
 :since: v0.1.00
 		"""
 
-		if (Abstract.thread_safe_mode): Abstract.local.uuid = uuid
-		else:
-		#
-			store = AbstractResponse.get_instance_store()
-			if (store != None): store['dNG.pas.data.session.uuid'] = uuid
-		#
+		store = AbstractResponse.get_instance_store()
+		if (store != None): store['dNG.pas.data.session.uuid'] = uuid
 	#
 #
 

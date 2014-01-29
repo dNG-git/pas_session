@@ -29,10 +29,10 @@ from time import time
 from dNG.data.json_parser import JsonParser
 from dNG.pas.data.binary import Binary
 from dNG.pas.data.settings import Settings
-from dNG.pas.data.traced_exception import TracedException
 from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
 from dNG.pas.database.instances.uuids import Uuids as _DbUuids
+from dNG.pas.runtime.io_exception import IOException
 from .abstract import Abstract
 
 class Uuids(Abstract, Instance):
@@ -113,6 +113,27 @@ Returns true if the uuID session is in use.
 		return (self.cache != None)
 	#
 
+	def is_reloadable(self):
+	#
+		"""
+Returns true if the instance can be reloaded automatically in another
+thread.
+
+:return: (bool) True if reloadable
+:since:  v0.1.00
+		"""
+
+		_return = True
+
+		if (self.db_id == None):
+		#
+			# Value could be set in another thread so check again
+			with self.lock: _return = (self.db_id != None)
+		#
+
+		return _return
+	#
+
 	def is_valid(self):
 	#
 		"""
@@ -155,7 +176,7 @@ Implementation of the reloading SQLalchemy database instance logic.
 		#
 			if (self.local.db_instance == None):
 			#
-				if (self.uuid == None): raise TracedException("Database instance is not reloadable.")
+				if (self.uuid == None): raise IOException("Database instance is not reloadable.")
 				self.local.db_instance = self._database.query(Uuids).filter(Uuids.uuid == self.uuid).one()
 			#
 			else: Instance._reload(self)
