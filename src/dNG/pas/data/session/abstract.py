@@ -47,6 +47,8 @@ multiple responses.
              Mozilla Public License, v. 2.0
 	"""
 
+	# pylint: disable=unused-argument
+
 	def __init__(self):
 	#
 		"""
@@ -116,9 +118,11 @@ Returns the user ID set for the session.
 		"""
 Returns the user profile set for the session.
 
-:return: (mixed) Value
+:return: (mixed) User Profile; None if not set
 :since:  v0.1.00
 		"""
+
+		# pylint: disable=broad-except
 
 		_return = None
 
