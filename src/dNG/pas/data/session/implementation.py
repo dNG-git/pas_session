@@ -2,7 +2,7 @@
 ##j## BOF
 
 """
-dNG.pas.data.session.Abstract
+dNG.pas.data.session.Implementation
 """
 """n// NOTE
 ----------------------------------------------------------------------------
@@ -25,14 +25,16 @@ NOTE_END //n"""
 
 from dNG.pas.controller.abstract_request import AbstractRequest
 from dNG.pas.controller.abstract_response import AbstractResponse
+from dNG.pas.data.settings import Settings
 from dNG.pas.data.logging.log_line import LogLine
 from dNG.pas.data.user.profile import Profile
+from dNG.pas.module.named_loader import NamedLoader
 from dNG.pas.runtime.not_implemented_exception import NotImplementedException
 from dNG.pas.runtime.type_exception import TypeException
 from dNG.pas.runtime.value_exception import ValueException
 from .abstract_adapter import AbstractAdapter
 
-class Abstract(object):
+class Implementation(object):
 #
 	"""
 A session is used for stateless requests that want to save data across
@@ -80,7 +82,7 @@ class tree for self).
 :since:  v0.1.00
 		"""
 
-		adapter = Abstract.get_adapter()
+		adapter = Implementation.get_adapter()
 
 		if (adapter == None or (not hasattr(adapter, name))): raise TypeException("Session adapter does not implement '{0}'".format(name))
 		return getattr(adapter(self), name)
@@ -179,7 +181,7 @@ Returns true if the uuID session is set persistently at the client.
 :since:  v0.1.00
 		"""
 
-		adapter = Abstract.get_adapter()
+		adapter = Implementation.get_adapter()
 		return (False if (adapter == None) else adapter(self).is_persistent())
 	#
 
@@ -204,7 +206,7 @@ Saves changes of the uuIDs instance.
 :since:  v0.1.00
 		"""
 
-		adapter = Abstract.get_adapter()
+		adapter = Implementation.get_adapter()
 		return (False if (adapter == None) else adapter(self).save())
 	#
 
@@ -252,6 +254,22 @@ Return the session adapter for protocol specific methods.
 	#
 
 	@staticmethod
+	def get_class():
+	#
+		"""
+Returns an session instance based on the configuration set.
+
+:return: (object) HTTP server implementation
+:since:  v0.1.00
+		"""
+
+		Settings.read_file("{0}/settings/pas_session.json".format(Settings.get("path_data")))
+		session_implementation = Settings.get("pas_session_implementation", "Uuids")
+
+		return NamedLoader.get_class("dNG.pas.data.session.{0}".format(session_implementation))
+	#
+
+	@staticmethod
 	def get_request_uuid():
 	#
 		"""
@@ -276,15 +294,17 @@ Returns the uuID set or for the corresponding request (if set).
 		"""
 
 		store = AbstractResponse.get_instance_store()
+		uuid = None
+
 		if (store != None): uuid = (store['dNG.pas.data.session.uuid'] if ("dNG.pas.data.session.uuid" in store) else None)
 
 		if (uuid == None):
 		#
-			adapter = Abstract.get_adapter()
+			adapter = Implementation.get_adapter()
 			if (adapter != None): uuid = adapter.get_uuid()
 		#
 
-		return (Abstract.get_request_uuid() if (uuid == None) else uuid)
+		return (Implementation.get_request_uuid() if (uuid == None) else uuid)
 	#
 
 	@staticmethod

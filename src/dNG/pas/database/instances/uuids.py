@@ -31,7 +31,7 @@ from .abstract import Abstract
 class Uuids(Abstract):
 #
 	"""
-The unique user Identification Service is the SQLalchemy based database
+The unique user Identification Service is the SQLAlchemy based database
 instance for a session.
 
 :author:     direct Netware Group

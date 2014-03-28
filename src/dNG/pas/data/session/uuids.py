@@ -26,16 +26,16 @@ NOTE_END //n"""
 from random import randrange
 from time import time
 
-from dNG.data.json_parser import JsonParser
+from dNG.data.json_resource import JsonResource
 from dNG.pas.data.binary import Binary
 from dNG.pas.data.settings import Settings
 from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
 from dNG.pas.database.instances.uuids import Uuids as _DbUuids
 from dNG.pas.runtime.io_exception import IOException
-from .abstract import Abstract
+from .implementation import Implementation
 
-class Uuids(Abstract, Instance):
+class Uuids(Implementation, Instance):
 #
 	"""
 The unique user Identification Service is the database based default
@@ -58,7 +58,7 @@ Constructor __init__(Uuids)
 :since: v0.1.00
 		"""
 
-		Abstract.__init__(self)
+		Implementation.__init__(self)
 
 		if (db_instance == None): db_instance = _DbUuids()
 		Instance.__init__(self, db_instance)
@@ -76,7 +76,7 @@ Database uuID used for reloading
 Validity of the session
 		"""
 
-		if (self.local.db_instance.data != None and self.local.db_instance.data != ""): self.cache = JsonParser().json2data(self.local.db_instance.data)
+		if (self.local.db_instance.data != None and self.local.db_instance.data != ""): self.cache = JsonResource().json_to_data(self.local.db_instance.data)
 		if (self.local.db_instance.session_timeout == None): self.local.db_instance.session_timeout = int(time() + self.session_time)
 	#
 
@@ -125,10 +125,10 @@ thread.
 
 		_return = True
 
-		if (self.db_id == None):
+		if (self.uuid == None):
 		#
 			# Value could be set in another thread so check again
-			with self.lock: _return = (self.db_id != None)
+			with self.lock: _return = (self.uuid != None)
 		#
 
 		return _return
@@ -167,7 +167,7 @@ Returns true if the uuID session is still valid.
 	def _reload(self):
 	#
 		"""
-Implementation of the reloading SQLalchemy database instance logic.
+Implementation of the reloading SQLAlchemy database instance logic.
 
 :since: v0.1.00
 		"""
@@ -198,12 +198,12 @@ Saves changes of the uuIDs instance.
 		#
 			with self:
 			#
-				_return = Abstract.save(self)
+				_return = Implementation.save(self)
 
 				if (_return):
 				#
 					self.local.db_instance.session_timeout = int(time() + self.session_time)
-					self.local.db_instance.data = ("" if (self.cache == None) else Binary.utf8(JsonParser().data2json(self.cache)))
+					self.local.db_instance.data = ("" if (self.cache == None) else Binary.utf8(JsonResource().data_to_json(self.cache)))
 
 					Instance.save(self)
 				#
