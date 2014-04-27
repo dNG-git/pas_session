@@ -54,7 +54,7 @@ multiple responses.
 	def __init__(self):
 	#
 		"""
-Constructor __init__(Abstract)
+Constructor __init__(Implementation)
 
 :since: v0.1.00
 		"""

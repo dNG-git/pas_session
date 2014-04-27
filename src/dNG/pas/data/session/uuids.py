@@ -35,7 +35,7 @@ from dNG.pas.database.instances.uuids import Uuids as _DbUuids
 from dNG.pas.runtime.io_exception import IOException
 from .implementation import Implementation
 
-class Uuids(Implementation, Instance):
+class Uuids(Instance, Implementation):
 #
 	"""
 The unique user Identification Service is the database based default
