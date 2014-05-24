@@ -123,15 +123,7 @@ thread.
 :since:  v0.1.00
 		"""
 
-		_return = True
-
-		if (self.uuid == None):
-		#
-			# Value could be set in another thread so check again
-			with self.lock: _return = (self.uuid != None)
-		#
-
-		return _return
+		return (self.uuid != None)
 	#
 
 	def is_valid(self):
@@ -172,9 +164,9 @@ Implementation of the reloading SQLAlchemy database instance logic.
 :since: v0.1.00
 		"""
 
-		with self.lock:
+		with self._lock:
 		#
-			if (self.local.db_instance == None):
+			if ((not hasattr(self.local, "db_instance")) or self.local.db_instance == None):
 			#
 				if (self.uuid == None): raise IOException("Database instance is not reloadable.")
 				self.local.db_instance = self._database.query(Uuids).filter(_DbUuids.uuid == self.uuid).one()
@@ -269,7 +261,7 @@ if required and requested.
 
 			if (_return != None):
 			#
-				uuids_data = _return.data_get("uuid")
+				uuids_data = _return.get_data_attributes("uuid")
 				Uuids.set_uuid(uuids_data['uuid'])
 			#
 		#

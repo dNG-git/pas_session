@@ -28,10 +28,10 @@ from dNG.pas.controller.abstract_response import AbstractResponse
 from dNG.pas.data.settings import Settings
 from dNG.pas.data.logging.log_line import LogLine
 from dNG.pas.data.user.profile import Profile
+from dNG.pas.database.nothing_matched_exception import NothingMatchedException
 from dNG.pas.module.named_loader import NamedLoader
 from dNG.pas.runtime.not_implemented_exception import NotImplementedException
 from dNG.pas.runtime.type_exception import TypeException
-from dNG.pas.runtime.value_exception import ValueException
 from .abstract_adapter import AbstractAdapter
 
 class Implementation(object):
@@ -140,7 +140,7 @@ Returns the user profile set for the session.
 				#
 					if (user_id != None): user_profile = Profile.load_id(user_id)
 				#
-				except ValueException: pass
+				except NothingMatchedException: pass
 
 				if (user_profile != None and user_profile.is_valid()):
 				#

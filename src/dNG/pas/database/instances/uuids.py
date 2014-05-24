@@ -23,9 +23,10 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 ----------------------------------------------------------------------------
 NOTE_END //n"""
 
-from sqlalchemy import BIGINT, Column, TEXT, VARCHAR
+from sqlalchemy import Column, TEXT, VARCHAR
 from uuid import uuid4 as uuid
 
+from dNG.pas.database.types.date_time import DateTime
 from .abstract import Abstract
 
 class Uuids(Abstract):
@@ -56,7 +57,7 @@ Encapsulating SQLAlchemy database instance class name
 	"""
 uuids.uuid
 	"""
-	session_timeout = Column(BIGINT, index = True, nullable = False)
+	session_timeout = Column(DateTime, index = True, nullable = False)
 	"""
 uuids.session_timeout
 	"""
