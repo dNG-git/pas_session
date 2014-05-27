@@ -294,9 +294,7 @@ Returns the uuID set or for the corresponding request (if set).
 		"""
 
 		store = AbstractResponse.get_instance_store()
-		uuid = None
-
-		if (store != None): uuid = (store['dNG.pas.data.session.uuid'] if ("dNG.pas.data.session.uuid" in store) else None)
+		uuid = (None if (store == None) else store.get("dNG.pas.data.session.uuid"))
 
 		if (uuid == None):
 		#
