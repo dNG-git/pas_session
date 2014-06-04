@@ -243,7 +243,7 @@ Sets the specified session timeout value.
 	def get_adapter():
 	#
 		"""
-Return the session adapter for protocol specific methods.
+Returns the session adapter for protocol specific methods.
 
 :return: (object) Session protocol adapter; None if not set
 :since:  v0.1.00
@@ -281,6 +281,21 @@ Returns the uuID for the corresponding request (if set).
 
 		instance = AbstractRequest.get_instance()
 		return (None if (instance == None) else instance.get_parameter("uuid", None))
+	#
+
+	@staticmethod
+	def get_session_user_id(session):
+	#
+		"""
+Returns the user ID of the given session instance.
+
+:param session: Session instance
+
+:return: (str) User ID
+:since:  v0.1.00
+		"""
+
+		return (session.get_user_id() if (isinstance(session, Implementation)) else None)
 	#
 
 	@staticmethod
