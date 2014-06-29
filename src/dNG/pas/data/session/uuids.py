@@ -2,10 +2,6 @@
 ##j## BOF
 
 """
-dNG.pas.data.session.Uuids
-"""
-"""n// NOTE
-----------------------------------------------------------------------------
 direct PAS
 Python Application Services
 ----------------------------------------------------------------------------
@@ -20,8 +16,7 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 ----------------------------------------------------------------------------
 #echo(pasSessionVersion)#
 #echo(__FILEPATH__)#
-----------------------------------------------------------------------------
-NOTE_END //n"""
+"""
 
 from random import randrange
 from time import time
@@ -88,6 +83,7 @@ Deletes this entry from the database.
 :since: v0.1.00
 		"""
 
+		if (self.log_handler != None): self.log_handler.debug("#echo(__FILEPATH__)# -{0!r}.delete()- (#echo(__LINE__)#)", self, context = "pas_database")
 		_return = False
 
 		with self:

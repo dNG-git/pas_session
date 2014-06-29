@@ -2,10 +2,6 @@
 ##j## BOF
 
 """
-dNG.pas.data.session.Implementation
-"""
-"""n// NOTE
-----------------------------------------------------------------------------
 direct PAS
 Python Application Services
 ----------------------------------------------------------------------------
@@ -20,8 +16,7 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 ----------------------------------------------------------------------------
 #echo(pasSessionVersion)#
 #echo(__FILEPATH__)#
-----------------------------------------------------------------------------
-NOTE_END //n"""
+"""
 
 from dNG.pas.controller.abstract_request import AbstractRequest
 from dNG.pas.controller.abstract_response import AbstractResponse
@@ -151,7 +146,7 @@ Returns the user profile set for the session.
 		#
 		except Exception as handled_exception:
 		#
-			LogLine.error(handled_exception)
+			LogLine.error(handled_exception, context = "pas_session")
 			_return = None
 		#
 
