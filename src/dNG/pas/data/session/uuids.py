@@ -237,7 +237,7 @@ if required and requested.
 			#
 
 			_return = None
-			db_instance = (None if (uuid == None) else database.query(_DbUuids).filter(_DbUuids.uuid == uuid).first())
+			db_instance = (None if (uuid == None) else database.query(_DbUuids).get(uuid))
 
 			if (db_instance != None):
 			#

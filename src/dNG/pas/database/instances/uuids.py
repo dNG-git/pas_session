@@ -48,6 +48,10 @@ SQLAlchemy table name
 	"""
 Encapsulating SQLAlchemy database instance class name
 	"""
+	db_schema_version = 1
+	"""
+Database schema version
+	"""
 
 	uuid = Column(VARCHAR(32), server_default = "", primary_key = True, nullable = False)
 	"""
