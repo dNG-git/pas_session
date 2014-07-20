@@ -22,7 +22,6 @@ from dNG.pas.controller.abstract_request import AbstractRequest
 from dNG.pas.controller.abstract_response import AbstractResponse
 from dNG.pas.data.settings import Settings
 from dNG.pas.data.logging.log_line import LogLine
-from dNG.pas.data.user.profile import Profile
 from dNG.pas.database.nothing_matched_exception import NothingMatchedException
 from dNG.pas.module.named_loader import NamedLoader
 from dNG.pas.runtime.not_implemented_exception import NotImplementedException
@@ -133,7 +132,11 @@ Returns the user profile set for the session.
 
 				try:
 				#
-					if (user_id != None): user_profile = Profile.load_id(user_id)
+					if (user_id != None):
+					#
+						user_profile_class = NamedLoader.get_class("dNG.pas.data.user.Profile")
+						if (user_profile_class != None): user_profile = user_profile_class.load_id(user_id)
+					#
 				#
 				except NothingMatchedException: pass
 
@@ -210,7 +213,7 @@ Saves changes of the uuIDs instance.
 		"""
 Sets the value for the specified key.
 
-:param key: Settings key
+:param key: Key
 :param value: Value
 
 :since: v0.1.00
