@@ -95,6 +95,14 @@ Deletes this entry from the database.
 		return _return
 	#
 
+	get_uuid = Instance._wrap_getter("uuid")
+	"""
+Returns the uuID of this session instance.
+
+:return: (str) uuID
+:since:  v0.1.00
+	"""
+
 	def is_active(self):
 	#
 		"""
@@ -229,7 +237,7 @@ if required and requested.
 
 		with Connection.get_instance() as database:
 		#
-			if (uuid == None): uuid = Uuids.get_uuid()
+			if (uuid == None): uuid = Uuids.get_thread_uuid()
 
 			if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
 			#
@@ -257,8 +265,8 @@ if required and requested.
 
 			if (_return != None):
 			#
-				uuids_data = _return.get_data_attributes("uuid")
-				Uuids.set_uuid(uuids_data['uuid'])
+				uuid = _return.get_uuid()
+				Uuids.set_thread_uuid(uuid)
 			#
 		#
 

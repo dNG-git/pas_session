@@ -53,7 +53,7 @@ Encapsulating SQLAlchemy database instance class name
 Database schema version
 	"""
 
-	uuid = Column(VARCHAR(32), server_default = "", primary_key = True, nullable = False)
+	uuid = Column(VARCHAR(32), primary_key = True, nullable = False)
 	"""
 uuids.uuid
 	"""

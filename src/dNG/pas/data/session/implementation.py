@@ -156,6 +156,18 @@ Returns the user profile set for the session.
 		return _return
 	#
 
+	def get_uuid(self):
+	#
+		"""
+Returns the uuID of this session instance.
+
+:return: (str) uuID
+:since:  v0.1.00
+		"""
+
+		raise NotImplementedException()
+	#
+
 	def is_active(self):
 	#
 		"""
@@ -237,6 +249,32 @@ Sets the specified session timeout value.
 		pass
 	#
 
+	def set_thread_default(self):
+	#
+		"""
+Sets this session as the thread default one.
+
+:since: v0.1.00
+		"""
+
+		store = AbstractResponse.get_instance_store()
+		if (store != None): store['dNG.pas.data.session.uuid'] = self.get_uuid()
+	#
+
+	def unset(self, key):
+	#
+		"""
+Unsets the specified key.
+
+:param key: Key
+
+:since: v0.1.00
+		"""
+
+		if (key == "session.user_id"): self.user_profile = None
+		if (self.cache != None and key in self.cache): del(self.cache[key])
+	#
+
 	@staticmethod
 	def get_adapter():
 	#
@@ -297,7 +335,7 @@ Returns the user ID of the given session instance.
 	#
 
 	@staticmethod
-	def get_uuid():
+	def get_thread_uuid():
 	#
 		"""
 Returns the uuID set or for the corresponding request (if set).
@@ -352,7 +390,7 @@ Sets the protocol specific adapter to be called.
 	#
 
 	@staticmethod
-	def set_uuid(uuid):
+	def set_thread_uuid(uuid):
 	#
 		"""
 Defines the uuID for the calling thread.
