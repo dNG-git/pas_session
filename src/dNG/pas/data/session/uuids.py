@@ -26,6 +26,7 @@ from dNG.pas.data.binary import Binary
 from dNG.pas.data.settings import Settings
 from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
+from dNG.pas.database.transaction_context import TransactionContext
 from dNG.pas.database.instances.uuids import Uuids as _DbUuids
 from dNG.pas.runtime.io_exception import IOException
 from .implementation import Implementation
@@ -88,7 +89,9 @@ Deletes this entry from the database.
 
 		with self:
 		#
-			self._database.delete(self.local.db_instance)
+			self._ensure_transaction_context()
+
+			self.local.connection.delete(self.local.db_instance)
 			_return = True
 		#
 
@@ -168,15 +171,12 @@ Implementation of the reloading SQLAlchemy database instance logic.
 :since: v0.1.00
 		"""
 
-		with self._lock:
+		if (self.local.db_instance == None):
 		#
-			if ((not hasattr(self.local, "db_instance")) or self.local.db_instance == None):
-			#
-				if (self.uuid == None): raise IOException("Database instance is not reloadable.")
-				self.local.db_instance = self._database.query(Uuids).filter(_DbUuids.uuid == self.uuid).one()
-			#
-			else: Instance._reload(self)
+			if (self.uuid == None): raise IOException("Database instance is not reloadable.")
+			self.local.db_instance = self.local.connection.query(Uuids).filter(_DbUuids.uuid == self.uuid).one()
 		#
+		else: Instance._reload(self)
 	#
 
 	def save(self):
@@ -235,17 +235,22 @@ if required and requested.
 :since: v0.1.00
 		"""
 
-		with Connection.get_instance() as database:
+		with Connection.get_instance() as connection:
 		#
 			if (uuid == None): uuid = Uuids.get_thread_uuid()
 
 			if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
 			#
-				if (database.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0): database.optimize_random(_DbUuids)
+				with TransactionContext():
+					if (connection.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
+					#
+						connection.optimize_random(_DbUuids)
+					#
+				#
 			#
 
 			_return = None
-			db_instance = (None if (uuid == None) else database.query(_DbUuids).get(uuid))
+			db_instance = (None if (uuid == None) else connection.query(_DbUuids).get(uuid))
 
 			if (db_instance != None):
 			#
