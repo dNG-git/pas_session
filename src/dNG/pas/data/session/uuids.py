@@ -235,44 +235,49 @@ if required and requested.
 :since: v0.1.00
 		"""
 
-		with Connection.get_instance() as connection:
+		_return = None
+
+		if (uuid == None): uuid = Uuids.get_thread_uuid()
+
+		if (uuid != None):
 		#
-			if (uuid == None): uuid = Uuids.get_thread_uuid()
-
-			if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
+			with Connection.get_instance() as connection:
 			#
-				with TransactionContext():
-					if (connection.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
+				if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
+				#
+					with TransactionContext():
 					#
-						connection.optimize_random(_DbUuids)
+						if (connection.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
+						#
+							connection.optimize_random(_DbUuids)
+						#
+					#
+				#
+
+				db_instance = connection.query(_DbUuids).get(uuid)
+
+				if (db_instance != None):
+				#
+					_return = Uuids(db_instance)
+
+					adapter = Uuids.get_adapter()
+					if (adapter != None): adapter(_return).load()
+
+					if (not _return.is_valid()):
+					#
+						_return.delete()
+						_return = None
 					#
 				#
 			#
+		#
 
-			_return = None
-			db_instance = (None if (uuid == None) else connection.query(_DbUuids).get(uuid))
+		if (_return == None and session_create): _return = Uuids()
 
-			if (db_instance != None):
-			#
-				_return = Uuids(db_instance)
-
-				adapter = Uuids.get_adapter()
-				if (adapter != None): adapter(_return).load()
-
-				if (not _return.is_valid()):
-				#
-					_return.delete()
-					_return = None
-				#
-			#
-
-			if (_return == None and session_create): _return = Uuids()
-
-			if (_return != None):
-			#
-				uuid = _return.get_uuid()
-				Uuids.set_thread_uuid(uuid)
-			#
+		if (_return != None):
+		#
+			uuid = _return.get_uuid()
+			Uuids.set_thread_uuid(uuid)
 		#
 
 		return _return
