@@ -26,7 +26,6 @@ from dNG.pas.data.binary import Binary
 from dNG.pas.data.settings import Settings
 from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
-from dNG.pas.database.transaction_context import TransactionContext
 from dNG.pas.database.instances.uuids import Uuids as _DbUuids
 from dNG.pas.runtime.io_exception import IOException
 from .implementation import Implementation
@@ -245,12 +244,9 @@ if required and requested.
 			#
 				if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
 				#
-					with TransactionContext():
+					if (connection.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
 					#
-						if (connection.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
-						#
-							connection.optimize_random(_DbUuids)
-						#
+						connection.optimize_random(_DbUuids)
 					#
 				#
 
