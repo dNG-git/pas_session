@@ -79,7 +79,7 @@ Constructor __init__(Uuids)
 		"""
 
 		Abstract.__init__(self, *args, **kwargs)
-		if (self.uuid == None): self.uuid = uuid().hex
+		if (self.uuid is None): self.uuid = uuid().hex
 	#
 #
 

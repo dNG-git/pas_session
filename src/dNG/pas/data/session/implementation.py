@@ -78,7 +78,7 @@ class tree for self).
 
 		adapter = Implementation.get_adapter()
 
-		if (adapter == None or (not hasattr(adapter, name))): raise TypeException("Session adapter does not implement '{0}'".format(name))
+		if (adapter is None or (not hasattr(adapter, name))): raise TypeException("Session adapter does not implement '{0}'".format(name))
 		return getattr(adapter(self), name)
 	#
 
@@ -94,7 +94,7 @@ Returns the value with the specified key or all session values.
 :since:  v0.1.00
 		"""
 
-		return (self.cache if (key == None or self.cache == None) else self.cache.get(key, default))
+		return (self.cache if (key is None or self.cache is None) else self.cache.get(key, default))
 	#
 
 	def get_user_id(self):
@@ -106,7 +106,7 @@ Returns the user ID set for the session.
 :since:  v0.1.00
 		"""
 
-		return (None if (self.cache == None or "session.user_id" not in self.cache) else self.cache['session.user_id'])
+		return (None if (self.cache is None or "session.user_id" not in self.cache) else self.cache['session.user_id'])
 	#
 
 	def get_user_profile(self):
@@ -124,7 +124,7 @@ Returns the user profile set for the session.
 
 		try:
 		#
-			if (self.user_profile != None): _return = self.user_profile
+			if (self.user_profile is not None): _return = self.user_profile
 			else:
 			#
 				user_id = self.get_user_id()
@@ -132,15 +132,15 @@ Returns the user profile set for the session.
 
 				try:
 				#
-					if (user_id != None):
+					if (user_id is not None):
 					#
 						user_profile_class = NamedLoader.get_class("dNG.pas.data.user.Profile")
-						if (user_profile_class != None): user_profile = user_profile_class.load_id(user_id)
+						if (user_profile_class is not None): user_profile = user_profile_class.load_id(user_id)
 					#
 				#
 				except NothingMatchedException: pass
 
-				if (user_profile != None and user_profile.is_valid()):
+				if (user_profile is not None and user_profile.is_valid()):
 				#
 					self.user_profile = user_profile
 					_return = self.user_profile
@@ -192,7 +192,7 @@ Returns true if the uuID session is set persistently at the client.
 		"""
 
 		adapter = Implementation.get_adapter()
-		return (False if (adapter == None) else adapter(self).is_persistent())
+		return (False if (adapter is None) else adapter(self).is_persistent())
 	#
 
 	def is_valid(self):
@@ -217,7 +217,7 @@ Saves changes of the uuIDs instance.
 		"""
 
 		adapter = Implementation.get_adapter()
-		return (False if (adapter == None) else adapter(self).save())
+		return (False if (adapter is None) else adapter(self).save())
 	#
 
 	def set(self, key, value = None):
@@ -231,7 +231,7 @@ Sets the value for the specified key.
 :since: v0.1.00
 		"""
 
-		if (self.cache == None): self.cache = { }
+		if (self.cache is None): self.cache = { }
 		if (key == "session.user_id"): self.user_profile = None
 		self.cache[key] = value
 	#
@@ -258,7 +258,7 @@ Sets this session as the thread default one.
 		"""
 
 		store = AbstractResponse.get_instance_store()
-		if (store != None): store['dNG.pas.data.session.uuid'] = self.get_uuid()
+		if (store is not None): store['dNG.pas.data.session.uuid'] = self.get_uuid()
 	#
 
 	def unset(self, key):
@@ -272,7 +272,7 @@ Unsets the specified key.
 		"""
 
 		if (key == "session.user_id"): self.user_profile = None
-		if (self.cache != None and key in self.cache): del(self.cache[key])
+		if (self.cache is not None and key in self.cache): del(self.cache[key])
 	#
 
 	@staticmethod
@@ -286,7 +286,7 @@ Returns the session adapter for protocol specific methods.
 		"""
 
 		store = AbstractResponse.get_instance_store()
-		return (store['dNG.pas.data.session.Adapter'] if (store != None and "dNG.pas.data.session.Adapter" in store) else None)
+		return (store['dNG.pas.data.session.Adapter'] if (store is not None and "dNG.pas.data.session.Adapter" in store) else None)
 	#
 
 	@staticmethod
@@ -316,7 +316,7 @@ Returns the uuID for the corresponding request (if set).
 		"""
 
 		instance = AbstractRequest.get_instance()
-		return (None if (instance == None) else instance.get_parameter("uuid", None))
+		return (None if (instance is None) else instance.get_parameter("uuid", None))
 	#
 
 	@staticmethod
@@ -345,15 +345,15 @@ Returns the uuID set or for the corresponding request (if set).
 		"""
 
 		store = AbstractResponse.get_instance_store()
-		uuid = (None if (store == None) else store.get("dNG.pas.data.session.uuid"))
+		uuid = (None if (store is None) else store.get("dNG.pas.data.session.uuid"))
 
-		if (uuid == None):
+		if (uuid is None):
 		#
 			adapter = Implementation.get_adapter()
-			if (adapter != None): uuid = adapter.get_uuid()
+			if (adapter is not None): uuid = adapter.get_uuid()
 		#
 
-		return (Implementation.get_request_uuid() if (uuid == None) else uuid)
+		return (Implementation.get_request_uuid() if (uuid is None) else uuid)
 	#
 
 	@staticmethod
@@ -385,7 +385,7 @@ Sets the protocol specific adapter to be called.
 		if (issubclass(adapter, AbstractAdapter)):
 		#
 			store = AbstractResponse.get_instance_store()
-			if (store != None): store['dNG.pas.data.session.Adapter'] = adapter
+			if (store is not None): store['dNG.pas.data.session.Adapter'] = adapter
 		#
 	#
 
@@ -401,7 +401,7 @@ Defines the uuID for the calling thread.
 		"""
 
 		store = AbstractResponse.get_instance_store()
-		if (store != None): store['dNG.pas.data.session.uuid'] = uuid
+		if (store is not None): store['dNG.pas.data.session.uuid'] = uuid
 	#
 #
 
