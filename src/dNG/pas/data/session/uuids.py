@@ -97,6 +97,21 @@ Deletes this entry from the database.
 		return _return
 	#
 
+	def get_timeout(self):
+	#
+		"""
+Returns the specified session timeout value.
+
+:return: (int) Session timeout value in seconds
+:since:  v0.1.02
+		"""
+
+		_return = self.get_data_attributes("session_timeout")['session_timeout'] - time()
+		if (_return < 0): _return = 0
+
+		return _return
+	#
+
 	get_uuid = Instance._wrap_getter("uuid")
 	"""
 Returns the uuID of this session instance.
@@ -197,9 +212,7 @@ Saves changes of the uuIDs instance.
 
 				if (_return):
 				#
-					self.local.db_instance.session_timeout = int(time() + self.session_time)
 					self.local.db_instance.data = ("" if (self.cache is None) else Binary.utf8(JsonResource().data_to_json(self.cache)))
-
 					Instance.save(self)
 				#
 			#
@@ -208,7 +221,7 @@ Saves changes of the uuIDs instance.
 		return _return
 	#
 
-	def set_session_time(self, seconds = None):
+	def set_timeout(self, timeout = None):
 	#
 		"""
 Sets the specified session timeout value.
@@ -218,7 +231,8 @@ Sets the specified session timeout value.
 :since: v0.1.00
 		"""
 
-		self.session_time = seconds
+		if (timeout is not None): self.session_time = timeout
+		with self: self.local.db_instance.session_timeout = time() + self.session_time
 	#
 
 	@staticmethod

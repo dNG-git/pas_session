@@ -97,6 +97,18 @@ Returns the value with the specified key or all session values.
 		return (self.cache if (key is None or self.cache is None) else self.cache.get(key, default))
 	#
 
+	def get_timeout(self):
+	#
+		"""
+Returns the specified session timeout value.
+
+:return: (int) Session timeout value in seconds
+:since:  v0.1.02
+		"""
+
+		raise NotImplementedException()
+	#
+
 	def get_user_id(self):
 	#
 		"""
@@ -236,17 +248,17 @@ Sets the value for the specified key.
 		self.cache[key] = value
 	#
 
-	def set_session_timeout(self, timeout = None):
+	def set_timeout(self, timeout = None):
 	#
 		"""
 Sets the specified session timeout value.
 
-:param timeout: Session timeout value
+:param timeout: Session timeout value in seconds
 
 :since: v0.1.00
 		"""
 
-		pass
+		raise NotImplementedException()
 	#
 
 	def set_thread_default(self):
