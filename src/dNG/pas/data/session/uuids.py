@@ -213,6 +213,8 @@ Saves changes of the uuIDs instance.
 				if (_return):
 				#
 					self.local.db_instance.data = ("" if (self.cache is None) else Binary.utf8(JsonResource().data_to_json(self.cache)))
+					self.local.db_instance.session_timeout = time() + self.session_time
+
 					Instance.save(self)
 				#
 			#
@@ -232,7 +234,6 @@ Sets the specified session timeout value.
 		"""
 
 		if (timeout is not None): self.session_time = timeout
-		with self: self.local.db_instance.session_timeout = time() + self.session_time
 	#
 
 	@staticmethod
