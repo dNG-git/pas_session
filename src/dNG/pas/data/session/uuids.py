@@ -28,9 +28,10 @@ from dNG.pas.database.connection import Connection
 from dNG.pas.database.instance import Instance
 from dNG.pas.database.instances.uuids import Uuids as _DbUuids
 from dNG.pas.runtime.io_exception import IOException
+from .abstract import Abstract
 from .implementation import Implementation
 
-class Uuids(Instance, Implementation):
+class Uuids(Instance, Abstract):
 #
 	"""
 The unique user Identification Service is the database based default
@@ -45,6 +46,11 @@ session implementation.
              Mozilla Public License, v. 2.0
 	"""
 
+	_DB_INSTANCE_CLASS = _DbUuids
+	"""
+SQLAlchemy database instance class to initialize for new instances.
+	"""
+
 	def __init__(self, db_instance = None):
 	#
 		"""
@@ -53,7 +59,7 @@ Constructor __init__(Uuids)
 :since: v0.1.00
 		"""
 
-		Implementation.__init__(self)
+		Abstract.__init__(self)
 
 		if (db_instance is None): db_instance = _DbUuids()
 		Instance.__init__(self, db_instance)
@@ -208,7 +214,7 @@ Saves changes of the uuIDs instance.
 		#
 			with self:
 			#
-				_return = Implementation.save(self)
+				_return = Abstract.save(self)
 
 				if (_return):
 				#
@@ -236,8 +242,8 @@ Sets the specified session timeout value.
 		if (timeout is not None): self.session_time = timeout
 	#
 
-	@staticmethod
-	def load(uuid = None, session_create = True):
+	@classmethod
+	def load(cls, uuid = None, session_create = True):
 	#
 		"""
 Loads the given (or externally identified) uuID session. Creates a new one
@@ -251,7 +257,7 @@ if required and requested.
 
 		_return = None
 
-		if (uuid is None): uuid = Uuids.get_thread_uuid()
+		if (uuid is None): uuid = Implementation.get_thread_uuid()
 
 		if (uuid is not None):
 		#
@@ -259,13 +265,14 @@ if required and requested.
 			#
 				if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
 				#
-					if (connection.query(_DbUuids).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
+					if (Instance.get_db_class_query(cls).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
 					#
 						connection.optimize_random(_DbUuids)
 					#
 				#
 
-				db_instance = connection.query(_DbUuids).get(uuid)
+				db_instance = Instance.get_db_class_query(cls).get(uuid)
+				Instance._ensure_db_class(cls, db_instance)
 
 				if (db_instance is not None):
 				#
@@ -284,12 +291,7 @@ if required and requested.
 		#
 
 		if (_return is None and session_create): _return = Uuids()
-
-		if (_return is not None):
-		#
-			uuid = _return.get_uuid()
-			Uuids.set_thread_uuid(uuid)
-		#
+		if (_return is not None): _return.set_thread_default()
 
 		return _return
 	#
