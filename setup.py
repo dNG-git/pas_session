@@ -52,10 +52,12 @@ with TemporaryDirectory(dir = ".") as build_directory:
 	      version = get_version(),
 	      description = "Python Application Services",
 	      long_description = """"pas_session" contains the interface and the uuIDs (unique user Identification Service) database based implementation to provide a session for asynchronous requests.""",
-	      author = "direct Netware Group",
+	      author = "direct Netware Group et al.",
 	      author_email = "web@direct-netware.de",
 	      license = "MPL2",
 	      url = "https://www.direct-netware.de/redirect?pas;session",
+
+	      platforms = [ "any" ],
 
 	      package_dir = { "": _build_path },
 	      packages = [ "dNG" ],
