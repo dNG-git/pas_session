@@ -21,13 +21,14 @@ https://www.direct-netware.de/redirect?licenses;mpl2
 from random import randrange
 from time import time
 
+from dNG.data.binary import Binary
 from dNG.data.json_resource import JsonResource
-from dNG.pas.data.binary import Binary
-from dNG.pas.data.settings import Settings
-from dNG.pas.database.connection import Connection
-from dNG.pas.database.instance import Instance
-from dNG.pas.database.instances.uuids import Uuids as _DbUuids
-from dNG.pas.runtime.io_exception import IOException
+from dNG.data.settings import Settings
+from dNG.database.connection import Connection
+from dNG.database.instance import Instance
+from dNG.database.instances.uuids import Uuids as _DbUuids
+from dNG.runtime.io_exception import IOException
+
 from .abstract import Abstract
 from .implementation import Implementation
 
@@ -37,11 +38,11 @@ class Uuids(Instance, Abstract):
 The unique user Identification Service is the database based default
 session implementation.
 
-:author:     direct Netware Group
+:author:     direct Netware Group et al.
 :copyright:  (C) direct Netware Group - All rights reserved
 :package:    pas
 :subpackage: session
-:since:      v0.1.00
+:since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;mpl2
              Mozilla Public License, v. 2.0
 	"""
@@ -56,7 +57,7 @@ SQLAlchemy database instance class to initialize for new instances.
 		"""
 Constructor __init__(Uuids)
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		Abstract.__init__(self)
@@ -86,7 +87,7 @@ Validity of the session
 		"""
 Deletes this entry from the database.
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		if (self.log_handler is not None): self.log_handler.debug("#echo(__FILEPATH__)# -{0!r}.delete()- (#echo(__LINE__)#)", self, context = "pas_database")
@@ -109,7 +110,7 @@ Deletes this entry from the database.
 Returns the specified session timeout value.
 
 :return: (int) Session timeout value in seconds
-:since:  v0.1.02
+:since:  v0.2.00
 		"""
 
 		_return = self.get_data_attributes("session_timeout")['session_timeout'] - time()
@@ -123,7 +124,7 @@ Returns the specified session timeout value.
 Returns the uuID of this session instance.
 
 :return: (str) uuID
-:since:  v0.1.00
+:since:  v0.2.00
 	"""
 
 	def is_active(self):
@@ -134,7 +135,7 @@ Returns true if the uuID session is in use.
 :param uuid: Unique user identification
 
 :return: (bool) True if in use
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return (self.cache is not None)
@@ -147,7 +148,7 @@ Returns true if the instance can be reloaded automatically in another
 thread.
 
 :return: (bool) True if reloadable
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return (self.uuid is not None)
@@ -160,7 +161,7 @@ Returns true if the uuID session is still valid.
 
 :param uuid: Unique user identification
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		if (self.validity is None):
@@ -188,7 +189,7 @@ Returns true if the uuID session is still valid.
 		"""
 Implementation of the reloading SQLAlchemy database instance logic.
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		if (self.local.db_instance is None):
@@ -205,7 +206,7 @@ Implementation of the reloading SQLAlchemy database instance logic.
 Saves changes of the uuIDs instance.
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		_return = False
@@ -236,7 +237,7 @@ Sets the specified session timeout value.
 
 :param seconds: Session timeout in seconds
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		if (timeout is not None): self.session_time = timeout
@@ -252,7 +253,7 @@ if required and requested.
 :param uuid: Unique user identification
 :param session_create: Create a new session if no one is loaded
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		_return = None

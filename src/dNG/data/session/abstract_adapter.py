@@ -24,11 +24,11 @@ class AbstractAdapter(object):
 A session protocol adapter implements methods that rely on protocol specific
 functionality.
 
-:author:     direct Netware Group
+:author:     direct Netware Group et al.
 :copyright:  (C) direct Netware Group - All rights reserved
 :package:    pas
 :subpackage: session
-:since:      v0.1.00
+:since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;mpl2
              Mozilla Public License, v. 2.0
 	"""
@@ -40,7 +40,7 @@ Constructor __init__(AbstractAdapter)
 
 :param session: Session instance
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		self.session = session
@@ -55,7 +55,7 @@ Session instance
 Returns true if the uuID session is set persistently at the client.
 
 :return: (bool) True if set
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return False
@@ -67,7 +67,7 @@ Returns true if the uuID session is set persistently at the client.
 Returns true if the defined session is valid.
 
 :return: (bool) True if session is valid
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return True
@@ -79,7 +79,7 @@ Returns true if the defined session is valid.
 Uses protocol specific functionality to load additional information of an
 session.
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		pass
@@ -91,7 +91,7 @@ session.
 Uses protocol specific functionality to save additional information of an
 session.
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		pass
@@ -104,7 +104,7 @@ session.
 Returns the uuID.
 
 :return: (str) Unique user identification; None if unknown
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return None

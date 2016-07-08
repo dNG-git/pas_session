@@ -18,12 +18,13 @@ https://www.direct-netware.de/redirect?licenses;mpl2
 #echo(__FILEPATH__)#
 """
 
-from dNG.pas.controller.abstract_response import AbstractResponse
-from dNG.pas.data.logging.log_line import LogLine
-from dNG.pas.database.nothing_matched_exception import NothingMatchedException
-from dNG.pas.module.named_loader import NamedLoader
-from dNG.pas.runtime.not_implemented_exception import NotImplementedException
-from dNG.pas.runtime.type_exception import TypeException
+from dNG.controller.abstract_response import AbstractResponse
+from dNG.data.logging.log_line import LogLine
+from dNG.database.nothing_matched_exception import NothingMatchedException
+from dNG.module.named_loader import NamedLoader
+from dNG.runtime.not_implemented_exception import NotImplementedException
+from dNG.runtime.type_exception import TypeException
+
 from .abstract_adapter import AbstractAdapter
 
 class Abstract(object):
@@ -32,11 +33,11 @@ class Abstract(object):
 The "Abstract" class is used to provide a thread-safe interface for user
 sessions.
 
-:author:     direct Netware Group
+:author:     direct Netware Group et al.
 :copyright:  (C) direct Netware Group - All rights reserved
 :package:    pas
 :subpackage: session
-:since:      v0.1.00
+:since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;mpl2
              Mozilla Public License, v. 2.0
 	"""
@@ -48,7 +49,7 @@ sessions.
 		"""
 Constructor __init__(Abstract)
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		self.cache = None
@@ -71,7 +72,7 @@ class tree for self).
 :param name: Attribute name
 
 :return: (mixed) Adapter attribute
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		adapter = Abstract.get_adapter()
@@ -89,7 +90,7 @@ Returns the value with the specified key or all session values.
 :param default: Default value if not set
 
 :return: (mixed) Value
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return (self.cache if (key is None or self.cache is None) else self.cache.get(key, default))
@@ -101,7 +102,7 @@ Returns the value with the specified key or all session values.
 Returns the specified session timeout value.
 
 :return: (int) Session timeout value in seconds
-:since:  v0.1.02
+:since:  v0.2.00
 		"""
 
 		raise NotImplementedException()
@@ -113,7 +114,7 @@ Returns the specified session timeout value.
 Returns the user ID set for the session.
 
 :return: (str) User ID; None if not set
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return (None if (self.cache is None or "session.user_id" not in self.cache) else self.cache['session.user_id'])
@@ -125,7 +126,7 @@ Returns the user ID set for the session.
 Returns the user profile set for the session.
 
 :return: (mixed) User Profile; None if not set
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		# pylint: disable=broad-except
@@ -144,7 +145,7 @@ Returns the user profile set for the session.
 				#
 					if (user_id is not None):
 					#
-						user_profile_class = NamedLoader.get_class("dNG.pas.data.user.Profile")
+						user_profile_class = NamedLoader.get_class("dNG.data.user.Profile")
 						if (user_profile_class is not None): user_profile = user_profile_class.load_id(user_id)
 					#
 				#
@@ -172,7 +173,7 @@ Returns the user profile set for the session.
 Returns the uuID of this session instance.
 
 :return: (str) uuID
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		raise NotImplementedException()
@@ -186,7 +187,7 @@ Returns true if the uuID session is in use.
 :param uuid: Unique user identification
 
 :return: (bool) True if in use
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return False
@@ -198,7 +199,7 @@ Returns true if the uuID session is in use.
 Returns true if the uuID session is set persistently at the client.
 
 :return: (bool) True if set
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		adapter = Abstract.get_adapter()
@@ -211,7 +212,7 @@ Returns true if the uuID session is set persistently at the client.
 Returns true if the uuID session is still valid.
 
 :return: (bool) True if valid
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		return False
@@ -223,7 +224,7 @@ Returns true if the uuID session is still valid.
 Saves changes of the uuIDs instance.
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		adapter = Abstract.get_adapter()
@@ -238,7 +239,7 @@ Sets the value for the specified key.
 :param key: Key
 :param value: Value
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		if (self.cache is None): self.cache = { }
@@ -253,7 +254,7 @@ Sets the specified session timeout value.
 
 :param timeout: Session timeout value in seconds
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		raise NotImplementedException()
@@ -264,11 +265,11 @@ Sets the specified session timeout value.
 		"""
 Sets this session as the thread default one.
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		store = AbstractResponse.get_instance_store()
-		if (store is not None): store['dNG.pas.data.session.uuid'] = self.get_uuid()
+		if (store is not None): store['dNG.data.session.uuid'] = self.get_uuid()
 	#
 
 	def unset(self, key):
@@ -278,7 +279,7 @@ Unsets the specified key.
 
 :param key: Key
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		if (key == "session.user_id"): self.user_profile = None
@@ -292,11 +293,11 @@ Unsets the specified key.
 Returns the session adapter for protocol specific methods.
 
 :return: (object) Session protocol adapter; None if not set
-:since:  v0.1.00
+:since:  v0.2.00
 		"""
 
 		store = AbstractResponse.get_instance_store()
-		return (store['dNG.pas.data.session.Adapter'] if (store is not None and "dNG.pas.data.session.Adapter" in store) else None)
+		return (store['dNG.data.session.Adapter'] if (store is not None and "dNG.data.session.Adapter" in store) else None)
 	#
 
 	@staticmethod
@@ -308,7 +309,7 @@ Loads the given (or initializes a fresh) uuID.
 :param uuid: Unique user identification
 :param session_create: Create a new session if no one is loaded
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		raise NotImplementedException()
@@ -322,13 +323,13 @@ Sets the protocol specific adapter to be called.
 
 :param adapter: Session protocol adapter
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		if (issubclass(adapter, AbstractAdapter)):
 		#
 			store = AbstractResponse.get_instance_store()
-			if (store is not None): store['dNG.pas.data.session.Adapter'] = adapter
+			if (store is not None): store['dNG.data.session.Adapter'] = adapter
 		#
 	#
 #

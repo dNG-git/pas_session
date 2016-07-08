@@ -22,7 +22,8 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import TEXT, VARCHAR
 from uuid import uuid4 as uuid
 
-from dNG.pas.database.types.date_time import DateTime
+from dNG.database.types.date_time import DateTime
+
 from .abstract import Abstract
 
 class Uuids(Abstract):
@@ -31,11 +32,11 @@ class Uuids(Abstract):
 The unique user Identification Service is the SQLAlchemy based database
 instance for a session.
 
-:author:     direct Netware Group
+:author:     direct Netware Group et al.
 :copyright:  (C) direct Netware Group - All rights reserved
 :package:    pas
 :subpackage: session
-:since:      v0.1.00
+:since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;mpl2
              Mozilla Public License, v. 2.0
 	"""
@@ -44,7 +45,7 @@ instance for a session.
 	"""
 SQLAlchemy table name
 	"""
-	db_instance_class = "dNG.pas.data.session.Uuids"
+	db_instance_class = "dNG.data.session.Uuids"
 	"""
 Encapsulating SQLAlchemy database instance class name
 	"""
@@ -75,7 +76,7 @@ uuids.data
 		"""
 Constructor __init__(Uuids)
 
-:since: v0.1.00
+:since: v0.2.00
 		"""
 
 		Abstract.__init__(self, *args, **kwargs)
