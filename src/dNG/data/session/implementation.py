@@ -44,9 +44,9 @@ multiple responses.
 	def get_class():
 	#
 		"""
-Returns an session instance based on the configuration set.
+Returns an session implementation class based on the configuration set.
 
-:return: (object) HTTP server implementation
+:return: (object) Session implementation class
 :since:  v0.2.00
 		"""
 
