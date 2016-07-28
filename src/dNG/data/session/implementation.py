@@ -22,6 +22,7 @@ from dNG.controller.abstract_request import AbstractRequest
 from dNG.controller.abstract_response import AbstractResponse
 from dNG.data.settings import Settings
 from dNG.module.named_loader import NamedLoader
+from dNG.runtime.not_implemented_class import NotImplementedClass
 
 from .abstract import Abstract
 
@@ -41,19 +42,25 @@ multiple responses.
 	"""
 
 	@staticmethod
-	def get_class():
+	def get_class(is_not_implemented_class_aware = False):
 	#
 		"""
 Returns an session implementation class based on the configuration set.
 
-:return: (object) Session implementation class
+:param is_not_implemented_class_aware: True to return
+       "dNG.runtime.NotImplementedClass" instead of None
+
+:return: (object) Session implementation class; None if not available
 :since:  v0.2.00
 		"""
 
 		Settings.read_file("{0}/settings/pas_session.json".format(Settings.get("path_data")))
 		session_implementation = Settings.get("pas_session_implementation", "Uuids")
 
-		return NamedLoader.get_class("dNG.data.session.{0}".format(session_implementation))
+		_return = NamedLoader.get_class("dNG.data.session.{0}".format(session_implementation))
+		if (_return is None and is_not_implemented_class_aware): _return = NotImplementedClass
+
+		return _return
 	#
 
 	@staticmethod
@@ -119,7 +126,7 @@ Loads the given (or initializes a fresh) uuID.
 :since: v0.2.00
 		"""
 
-		return Implementation.get_class().load(uuid, session_create)
+		return Implementation.get_class(True).load(uuid, session_create)
 	#
 
 	@staticmethod
