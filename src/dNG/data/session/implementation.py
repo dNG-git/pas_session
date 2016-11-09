@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-##j## BOF
 
 """
 direct PAS
@@ -27,8 +26,7 @@ from dNG.runtime.not_implemented_class import NotImplementedClass
 from .abstract import Abstract
 
 class Implementation(object):
-#
-	"""
+    """
 A session is used for stateless requests that want to save data across
 multiple responses.
 
@@ -39,12 +37,11 @@ multiple responses.
 :since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;mpl2
              Mozilla Public License, v. 2.0
-	"""
+    """
 
-	@staticmethod
-	def get_class(is_not_implemented_class_aware = False):
-	#
-		"""
+    @staticmethod
+    def get_class(is_not_implemented_class_aware = False):
+        """
 Returns an session implementation class based on the configuration set.
 
 :param is_not_implemented_class_aware: True to return
@@ -52,97 +49,89 @@ Returns an session implementation class based on the configuration set.
 
 :return: (object) Session implementation class; None if not available
 :since:  v0.2.00
-		"""
+        """
 
-		Settings.read_file("{0}/settings/pas_session.json".format(Settings.get("path_data")))
-		session_implementation = Settings.get("pas_session_implementation", "Uuids")
+        Settings.read_file("{0}/settings/pas_session.json".format(Settings.get("path_data")))
+        session_implementation = Settings.get("pas_session_implementation", "Uuids")
 
-		_return = NamedLoader.get_class("dNG.data.session.{0}".format(session_implementation))
-		if (_return is None and is_not_implemented_class_aware): _return = NotImplementedClass
+        _return = NamedLoader.get_class("dNG.data.session.{0}".format(session_implementation))
+        if (_return is None and is_not_implemented_class_aware): _return = NotImplementedClass
 
-		return _return
-	#
+        return _return
+    #
 
-	@staticmethod
-	def get_request_uuid():
-	#
-		"""
+    @staticmethod
+    def get_request_uuid():
+        """
 Returns the uuID for the corresponding request (if set).
 
 :return: (str) Unique user identification
 :since:  v0.2.00
-		"""
+        """
 
-		instance = AbstractRequest.get_instance()
-		return (None if (instance is None) else instance.get_parameter("uuid", None))
-	#
+        instance = AbstractRequest.get_instance()
+        return (None if (instance is None) else instance.get_parameter("uuid", None))
+    #
 
-	@staticmethod
-	def get_session_user_id(session):
-	#
-		"""
+    @staticmethod
+    def get_session_user_id(session):
+        """
 Returns the user ID of the given session instance.
 
 :param session: Session instance
 
 :return: (str) User ID
 :since:  v0.2.00
-		"""
+        """
 
-		return (session.get_user_id() if (isinstance(session, Abstract)) else None)
-	#
+        return (session.get_user_id() if (isinstance(session, Abstract)) else None)
+    #
 
-	@staticmethod
-	def get_thread_uuid():
-	#
-		"""
+    @staticmethod
+    def get_thread_uuid():
+        """
 Returns the uuID set or for the corresponding request (if set).
 
 :return: (str) Unique user identification
 :since:  v0.2.00
-		"""
+        """
 
-		store = AbstractResponse.get_instance_store()
-		uuid = (None if (store is None) else store.get("dNG.data.session.uuid"))
+        store = AbstractResponse.get_instance_store()
+        uuid = (None if (store is None) else store.get("dNG.data.session.uuid"))
 
-		if (uuid is None):
-		#
-			adapter = Abstract.get_adapter()
-			if (adapter is not None): uuid = adapter.get_uuid()
-		#
+        if (uuid is None):
+            adapter = Abstract.get_adapter()
+            if (adapter is not None): uuid = adapter.get_uuid()
+        #
 
-		return (Implementation.get_request_uuid() if (uuid is None) else uuid)
-	#
+        return (Implementation.get_request_uuid() if (uuid is None) else uuid)
+    #
 
-	@staticmethod
-	def load(uuid = None, session_create = True):
-	#
-		"""
+    @staticmethod
+    def load(uuid = None, session_create = True):
+        """
 Loads the given (or initializes a fresh) uuID.
 
 :param uuid: Unique user identification
 :param session_create: Create a new session if no one is loaded
 
 :since: v0.2.00
-		"""
+        """
 
-		return Implementation.get_class(True).load(uuid, session_create)
-	#
+        return Implementation.get_class(True).load(uuid, session_create)
+    #
 
-	@staticmethod
-	def set_thread_uuid(uuid):
-	#
-		"""
+    @staticmethod
+    def set_thread_uuid(uuid):
+        """
 Defines the uuID for the calling thread.
 
 :param uuid: Unique user identification
 
 :since: v0.2.00
-		"""
+        """
 
-		store = AbstractResponse.get_instance_store()
-		if (store is not None): store['dNG.data.session.uuid'] = uuid
-	#
+        store = AbstractResponse.get_instance_store()
+        if (store is not None): store['dNG.data.session.uuid'] = uuid
+    #
 #
-
-##j## EOF

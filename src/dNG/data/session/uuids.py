@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-##j## BOF
 
 """
 direct PAS
@@ -33,8 +32,7 @@ from .abstract import Abstract
 from .implementation import Implementation
 
 class Uuids(Instance, Abstract):
-#
-	"""
+    """
 The unique user Identification Service is the database based default
 session implementation.
 
@@ -45,208 +43,185 @@ session implementation.
 :since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;mpl2
              Mozilla Public License, v. 2.0
-	"""
+    """
 
-	_DB_INSTANCE_CLASS = _DbUuids
-	"""
+    _DB_INSTANCE_CLASS = _DbUuids
+    """
 SQLAlchemy database instance class to initialize for new instances.
-	"""
+    """
 
-	def __init__(self, db_instance = None):
-	#
-		"""
+    def __init__(self, db_instance = None):
+        """
 Constructor __init__(Uuids)
 
 :since: v0.2.00
-		"""
+        """
 
-		Abstract.__init__(self)
+        Abstract.__init__(self)
 
-		if (db_instance is None): db_instance = _DbUuids()
-		Instance.__init__(self, db_instance)
+        if (db_instance is None): db_instance = _DbUuids()
+        Instance.__init__(self, db_instance)
 
-		self.session_time = int(Settings.get("pas_session_uuids_session_time", 900))
-		"""
+        self.session_time = int(Settings.get("pas_session_uuids_session_time", 900))
+        """
 Max age of the session
-		"""
-		self.uuid = db_instance.uuid
-		"""
+        """
+        self.uuid = db_instance.uuid
+        """
 Database uuID used for reloading
-		"""
-		self.validity = None
-		"""
+        """
+        self.validity = None
+        """
 Validity of the session
-		"""
+        """
 
-		if (self.local.db_instance.data is not None and self.local.db_instance.data != ""): self.cache = JsonResource().json_to_data(self.local.db_instance.data)
-		if (self.local.db_instance.session_timeout is None): self.local.db_instance.session_timeout = int(time() + self.session_time)
-	#
+        if (self.local.db_instance.data is not None and self.local.db_instance.data != ""): self.cache = JsonResource().json_to_data(self.local.db_instance.data)
+        if (self.local.db_instance.session_timeout is None): self.local.db_instance.session_timeout = int(time() + self.session_time)
+    #
 
-	def delete(self):
-	#
-		"""
+    def delete(self):
+        """
 Deletes this entry from the database.
 
 :since: v0.2.00
-		"""
+        """
 
-		if (self.log_handler is not None): self.log_handler.debug("#echo(__FILEPATH__)# -{0!r}.delete()- (#echo(__LINE__)#)", self, context = "pas_database")
-		_return = False
+        if (self.log_handler is not None): self.log_handler.debug("#echo(__FILEPATH__)# -{0!r}.delete()- (#echo(__LINE__)#)", self, context = "pas_database")
+        _return = False
 
-		with self:
-		#
-			self._ensure_transaction_context()
+        with self:
+            self._ensure_transaction_context()
 
-			self.local.connection.delete(self.local.db_instance)
-			_return = True
-		#
+            self.local.connection.delete(self.local.db_instance)
+            _return = True
+        #
 
-		return _return
-	#
+        return _return
+    #
 
-	def get_timeout(self):
-	#
-		"""
+    def get_timeout(self):
+        """
 Returns the specified session timeout value.
 
 :return: (int) Session timeout value in seconds
 :since:  v0.2.00
-		"""
+        """
 
-		_return = self.get_data_attributes("session_timeout")['session_timeout'] - time()
-		if (_return < 0): _return = 0
+        _return = self.get_data_attributes("session_timeout")['session_timeout'] - time()
+        if (_return < 0): _return = 0
 
-		return _return
-	#
+        return _return
+    #
 
-	get_uuid = Instance._wrap_getter("uuid")
-	"""
+    get_uuid = Instance._wrap_getter("uuid")
+    """
 Returns the uuID of this session instance.
 
 :return: (str) uuID
 :since:  v0.2.00
-	"""
+    """
 
-	def is_active(self):
-	#
-		"""
+    def is_active(self):
+        """
 Returns true if the uuID session is in use.
-
-:param uuid: Unique user identification
 
 :return: (bool) True if in use
 :since:  v0.2.00
-		"""
+        """
 
-		return (self.cache is not None)
-	#
+        return (self.cache is not None)
+    #
 
-	def is_reloadable(self):
-	#
-		"""
+    def is_reloadable(self):
+        """
 Returns true if the instance can be reloaded automatically in another
 thread.
 
 :return: (bool) True if reloadable
 :since:  v0.2.00
-		"""
+        """
 
-		return (self.uuid is not None)
-	#
+        return (self.uuid is not None)
+    #
 
-	def is_valid(self):
-	#
-		"""
+    def is_valid(self):
+        """
 Returns true if the uuID session is still valid.
 
-:param uuid: Unique user identification
+:return: (bool) True if valid
+:since:  v0.2.00
+        """
 
-:since: v0.2.00
-		"""
+        if (self.validity is None):
+            with self:
+                _return = (self.local.db_instance.session_timeout > time())
 
-		if (self.validity is None):
-		#
-			with self:
-			#
-				_return = (self.local.db_instance.session_timeout > time())
+                if (_return):
+                    adapter = Uuids.get_adapter()
+                    if (adapter is not None): _return = adapter(self).is_valid()
+                #
 
-				if (_return):
-				#
-					adapter = Uuids.get_adapter()
-					if (adapter is not None): _return = adapter(self).is_valid()
-				#
+                self.validity = _return
+            #
+        else: _return = self.validity
 
-				self.validity = _return
-			#
-		#
-		else: _return = self.validity
+        return _return
+    #
 
-		return _return
-	#
-
-	def _reload(self):
-	#
-		"""
+    def _reload(self):
+        """
 Implementation of the reloading SQLAlchemy database instance logic.
 
 :since: v0.2.00
-		"""
+        """
 
-		if (self.local.db_instance is None):
-		#
-			if (self.uuid is None): raise IOException("Database instance is not reloadable.")
-			self.local.db_instance = self.local.connection.query(Uuids).filter(_DbUuids.uuid == self.uuid).one()
-		#
-		else: Instance._reload(self)
-	#
+        if (self.local.db_instance is None):
+            if (self.uuid is None): raise IOException("Database instance is not reloadable.")
+            self.local.db_instance = self.local.connection.query(Uuids).filter(_DbUuids.uuid == self.uuid).one()
+        else: Instance._reload(self)
+    #
 
-	def save(self):
-	#
-		"""
+    def save(self):
+        """
 Saves changes of the uuIDs instance.
 
 :return: (bool) True on success
 :since:  v0.2.00
-		"""
+        """
 
-		_return = False
+        _return = False
 
-		if (self.is_valid()):
-		#
-			with self:
-			#
-				_return = Abstract.save(self)
+        if (self.is_valid()):
+            with self:
+                _return = Abstract.save(self)
 
-				if (_return):
-				#
-					self.local.db_instance.data = ("" if (self.cache is None) else Binary.utf8(JsonResource().data_to_json(self.cache)))
-					self.local.db_instance.session_timeout = time() + self.session_time
+                if (_return):
+                    self.local.db_instance.data = ("" if (self.cache is None) else Binary.utf8(JsonResource().data_to_json(self.cache)))
+                    self.local.db_instance.session_timeout = time() + self.session_time
 
-					Instance.save(self)
-				#
-			#
-		#
+                    Instance.save(self)
+                #
+            #
+        #
 
-		return _return
-	#
+        return _return
+    #
 
-	def set_timeout(self, timeout = None):
-	#
-		"""
+    def set_timeout(self, timeout = None):
+        """
 Sets the specified session timeout value.
 
 :param seconds: Session timeout in seconds
 
 :since: v0.2.00
-		"""
+        """
 
-		if (timeout is not None): self.session_time = timeout
-	#
+        if (timeout is not None): self.session_time = timeout
+    #
 
-	@classmethod
-	def load(cls, uuid = None, session_create = True):
-	#
-		"""
+    @classmethod
+    def load(cls, uuid = None, session_create = True):
+        """
 Loads the given (or externally identified) uuID session. Creates a new one
 if required and requested.
 
@@ -254,48 +229,40 @@ if required and requested.
 :param session_create: Create a new session if no one is loaded
 
 :since: v0.2.00
-		"""
+        """
 
-		_return = None
+        _return = None
 
-		if (uuid is None): uuid = Implementation.get_thread_uuid()
+        if (uuid is None): uuid = Implementation.get_thread_uuid()
 
-		if (uuid is not None):
-		#
-			with Connection.get_instance() as connection:
-			#
-				if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
-				#
-					if (Instance.get_db_class_query(cls).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
-					#
-						connection.optimize_random(_DbUuids)
-					#
-				#
+        if (uuid is not None):
+            with Connection.get_instance() as connection:
+                if ((not Settings.get("pas_database_auto_maintenance", False)) and randrange(0, 3) < 1):
+                    if (Instance.get_db_class_query(cls).filter(_DbUuids.session_timeout <= int(time())).delete() > 0):
+                        connection.optimize_random(_DbUuids)
+                    #
+                #
 
-				db_instance = Instance.get_db_class_query(cls).get(uuid)
-				Instance._ensure_db_class(cls, db_instance)
+                db_instance = Instance.get_db_class_query(cls).get(uuid)
+                Instance._ensure_db_class(cls, db_instance)
 
-				if (db_instance is not None):
-				#
-					_return = Uuids(db_instance)
+                if (db_instance is not None):
+                    _return = Uuids(db_instance)
 
-					adapter = Uuids.get_adapter()
-					if (adapter is not None): adapter(_return).load()
+                    adapter = Uuids.get_adapter()
+                    if (adapter is not None): adapter(_return).load()
 
-					if (not _return.is_valid()):
-					#
-						_return.delete()
-						_return = None
-					#
-				#
-			#
-		#
+                    if (not _return.is_valid()):
+                        _return.delete()
+                        _return = None
+                    #
+                #
+            #
+        #
 
-		if (_return is None and session_create): _return = Uuids()
-		if (_return is not None): _return.set_thread_default()
+        if (_return is None and session_create): _return = Uuids()
+        if (_return is not None): _return.set_thread_default()
 
-		return _return
-	#
+        return _return
+    #
 #
-
-##j## EOF

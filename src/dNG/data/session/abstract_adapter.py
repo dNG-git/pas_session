@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-##j## BOF
 
 """
 direct PAS
@@ -19,8 +18,7 @@ https://www.direct-netware.de/redirect?licenses;mpl2
 """
 
 class AbstractAdapter(object):
-#
-	"""
+    """
 A session protocol adapter implements methods that rely on protocol specific
 functionality.
 
@@ -31,84 +29,76 @@ functionality.
 :since:      v0.2.00
 :license:    https://www.direct-netware.de/redirect?licenses;mpl2
              Mozilla Public License, v. 2.0
-	"""
+    """
 
-	def __init__(self, session):
-	#
-		"""
+    def __init__(self, session):
+        """
 Constructor __init__(AbstractAdapter)
 
 :param session: Session instance
 
 :since: v0.2.00
-		"""
+        """
 
-		self.session = session
-		"""
+        self.session = session
+        """
 Session instance
-		"""
-	#
+        """
+    #
 
-	def is_persistent(self):
-	#
-		"""
+    def is_persistent(self):
+        """
 Returns true if the uuID session is set persistently at the client.
 
 :return: (bool) True if set
 :since:  v0.2.00
-		"""
+        """
 
-		return False
-	#
+        return False
+    #
 
-	def is_valid(self):
-	#
-		"""
+    def is_valid(self):
+        """
 Returns true if the defined session is valid.
 
 :return: (bool) True if session is valid
 :since:  v0.2.00
-		"""
+        """
 
-		return True
-	#
+        return True
+    #
 
-	def load(self):
-	#
-		"""
+    def load(self):
+        """
 Uses protocol specific functionality to load additional information of an
 session.
 
 :since: v0.2.00
-		"""
+        """
 
-		pass
-	#
+        pass
+    #
 
-	def save(self):
-	#
-		"""
+    def save(self):
+        """
 Uses protocol specific functionality to save additional information of an
 session.
 
 :since: v0.2.00
-		"""
+        """
 
-		pass
-	#
+        pass
+    #
 
-	@staticmethod
-	def get_uuid():
-	#
-		"""
+    @staticmethod
+    def get_uuid():
+        """
 Returns the uuID.
 
 :return: (str) Unique user identification; None if unknown
 :since:  v0.2.00
-		"""
+        """
 
-		return None
-	#
+        return None
+    #
 #
-
-##j## EOF
