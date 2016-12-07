@@ -17,6 +17,8 @@ https://www.direct-netware.de/redirect?licenses;mpl2
 #echo(__FILEPATH__)#
 """
 
+# pylint: disable=import-error, no-name-in-module
+
 from dNG.controller.abstract_response import AbstractResponse
 from dNG.data.logging.log_line import LogLine
 from dNG.database.nothing_matched_exception import NothingMatchedException
